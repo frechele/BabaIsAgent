@@ -17,6 +17,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 add_subdirectory(Libraries/baba-is-auto)
 include_directories(Libraries/baba-is-auto/Includes)
 
+include_directories(Libraries/json/single_include)
+
 # Include directories
 include_directories(Includes)
 
