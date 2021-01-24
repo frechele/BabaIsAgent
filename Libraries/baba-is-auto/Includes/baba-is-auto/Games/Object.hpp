@@ -33,6 +33,9 @@ class Object
     //! Default constructor.
     Object() = default;
 
+    //! Default copy constructor.
+    Object(const Object&) = default;
+
     //! Constructs an object.
     //! \param types A list of object types.
     explicit Object(std::vector<ObjectType> types);

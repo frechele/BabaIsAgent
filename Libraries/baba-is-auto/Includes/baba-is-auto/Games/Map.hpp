@@ -28,6 +28,9 @@ class Map
     //! Default constructor.
     Map() = default;
 
+    //! Default copy constructor.
+    Map(const Map&) = default;
+
     //! Constructs map with given \p width and \p height.
     //! \param width The size of the width.
     //! \param height The size of the height.

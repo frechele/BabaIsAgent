@@ -27,6 +27,9 @@ class Game
     //! \param filename The file name to load a map.
     explicit Game(std::string_view filename);
 
+    //! Default copy constructor
+    Game(const Game&) = default;
+
     //! Resets map and rule data.
     void Reset();
 
