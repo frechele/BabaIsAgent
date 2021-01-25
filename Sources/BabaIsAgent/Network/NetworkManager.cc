@@ -1,5 +1,8 @@
 #include <BabaIsAgent/Network/NetworkManager.hpp>
 
+#include <BabaIsAgent/Network/RandomNetwork.hpp>
+#include <BabaIsAgent/Network/TrtNetwork.hpp>
+
 namespace BabaIsAgent::Network
 {
 NetworkManager::NetworkManager(const Common::Config& config)
@@ -21,12 +24,20 @@ NetworkManager::~NetworkManager()
 void NetworkManager::Init()
 {
     const int numOfWorkers = config_.NumOfEvalWorker;
+    const std::size_t numOfGpus = config_.Gpus.size();
 
     barrier_.Init(numOfWorkers);
 
     for (int threadId = 0; threadId < numOfWorkers; ++threadId)
     {
         std::unique_ptr<Network> network;
+
+#ifdef USE_TENSORRT
+        network =
+            std::make_unique<TrtNetwork>(config_.Gpus[threadId % numOfWorkers]);
+#else
+        network = std::make_unique<RandomNetwork>();
+#endif
 
         workers_[threadId] =
             std::thread(&NetworkManager::evalThread, this, std::move(network));
