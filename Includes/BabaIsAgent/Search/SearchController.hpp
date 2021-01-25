@@ -1,6 +1,7 @@
 #ifndef BABA_IS_AGENT_SEARCH_CONTROLLER_HPP
 #define BABA_IS_AGENT_SEARCH_CONTROLLER_HPP
 
+#include <BabaIsAgent/Common/Config.hpp>
 #include <BabaIsAgent/Utils/WaitGroup.hpp>
 
 #include <condition_variable>
@@ -18,7 +19,7 @@ enum class SearchState
 class SearchController final
 {
  public:
-    explicit SearchController(std::size_t threadNum);
+    explicit SearchController(const Common::Config& config);
 
     void Pause();
     void AckPause();
@@ -30,10 +31,10 @@ class SearchController final
     SearchState GetState() const;
 
  private:
+    const Common::Config& config_;
+
     mutable std::mutex mutex_;
     std::condition_variable cv_;
-
-    std::size_t threadNum_;
 
     SearchState state_{ SearchState::PAUSE };
 

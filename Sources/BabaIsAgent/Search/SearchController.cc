@@ -2,9 +2,8 @@
 
 namespace BabaIsAgent::Search
 {
-SearchController::SearchController(std::size_t threadNum) : threadNum_(threadNum)
+SearchController::SearchController(const Common::Config& config) : config_(config)
 {
-    // Do nothing
 }
 
 void SearchController::Pause()
@@ -32,8 +31,8 @@ void SearchController::Resume()
         if (state_ == SearchState::SEARCHING)
             return;
 
-        resumeGroup_.Add(threadNum_);
-        pauseGroup_.Add(threadNum_);
+        resumeGroup_.Add(config_.NumOfSearchWorker);
+        pauseGroup_.Add(config_.NumOfSearchWorker);
 
         state_ = SearchState::SEARCHING;
     }
