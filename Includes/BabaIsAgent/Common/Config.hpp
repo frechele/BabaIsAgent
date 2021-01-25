@@ -25,6 +25,9 @@ struct Config final
     // Search Options
     int NumOfSearchWorker{ 1 };
 
+    bool EnableDirichletNoise{ false };
+    std::size_t MaxSimulationCount{ 10 };
+
     float cPUCT{ 1.8f };
     float InitPenalty{ 0 };
     float VirtualLoss{ 0 };

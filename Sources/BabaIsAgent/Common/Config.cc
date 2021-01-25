@@ -26,6 +26,9 @@ Config::Config(std::string_view configFileName)
 	// Search Options
 	NumOfSearchWorker = j.value<int>("NumOfSearchWorker", NumOfSearchWorker);
 
+	EnableDirichletNoise = j.value<bool>("EnableDirichletNoise", EnableDirichletNoise);
+	MaxSimulationCount = j.value<std::size_t>("MaxSimulationCount", MaxSimulationCount);
+
 	cPUCT = j.value<float>("cPUCT", cPUCT);
 	InitPenalty = j.value<float>("InitPenalty", InitPenalty);
 	VirtualLoss = j.value<float>("VirtualLoss", VirtualLoss);
