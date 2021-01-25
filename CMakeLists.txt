@@ -18,6 +18,7 @@ add_subdirectory(Libraries/baba-is-auto)
 include_directories(Libraries/baba-is-auto/Includes)
 
 include_directories(Libraries/json/single_include)
+include_directories(Libraries/random/include)
 
 # Include directories
 include_directories(Includes)
