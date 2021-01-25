@@ -7,6 +7,9 @@ project(BabaIsAgent)
 # C++ standard
 set(CMAKE_CXX_STANDARD 17)
 
+# Options
+option(USE_TENSORRT "Build with TensorRT" OFF)
+
 # Set output directories
 set(DEFAULT_CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
@@ -19,6 +22,19 @@ include_directories(Libraries/baba-is-auto/Includes)
 
 include_directories(Libraries/json/single_include)
 include_directories(Libraries/random/include)
+
+if(USE_TENSORRT)
+	include(CMake/FindTensorRT.cmake)
+
+	if (TensorRT_FOUND)
+		message("Using TensorRT")
+
+		add_compile_definitions(USE_TENSORRT)
+		find_package(CUDA REQUIRED)
+	else()
+		message("Cannot find TensorRT, disable TensorRT option")
+	endif()
+endif()
 
 # Include directories
 include_directories(Includes)
