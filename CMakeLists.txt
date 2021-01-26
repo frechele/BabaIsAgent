@@ -22,6 +22,7 @@ include_directories(Libraries/baba-is-auto/Includes)
 
 include_directories(Libraries/json/single_include)
 include_directories(Libraries/random/include)
+include_directories(Libraries/Lyra/include)
 
 if(USE_TENSORRT)
 	include(CMake/FindTensorRT.cmake)

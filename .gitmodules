@@ -4,3 +4,6 @@
 [submodule "Libraries/random"]
 	path = Libraries/random
 	url = https://github.com/effolkronium/random
+[submodule "Libraries/Lyra"]
+	path = Libraries/Lyra
+	url = https://github.com/bfgroup/Lyra
