@@ -24,7 +24,7 @@ NetworkManager::~NetworkManager()
 void NetworkManager::Init()
 {
     const int numOfWorkers = config_.NumOfEvalWorker;
-    const std::size_t numOfGpus = config_.Gpus.size();
+    [[maybe_unused]] const std::size_t numOfGpus = config_.Gpus.size();
 
     barrier_.Init(numOfWorkers);
 
