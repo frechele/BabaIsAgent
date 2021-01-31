@@ -3,6 +3,8 @@
 #include <BabaIsAgent/Utils/Utils.hpp>
 
 #include <chrono>
+#include <effolkronium/random.hpp>
+#include <random>
 
 namespace BabaIsAgent::Search
 {
@@ -129,6 +131,33 @@ void SearchEngine::initRoot()
         netMgr_.Evaluate(*mainGame_, policy, value);
 
         root_->Expand(policy);
+    }
+
+    if (config_.EnableDirichletNoise)
+    {
+        std::gamma_distribution<float> dist(config_.DirichletNoiseAlpha);
+
+        const std::size_t numOfChildren = root_->NumOfChildren;
+        std::vector<float> noise(numOfChildren);
+
+        for (std::size_t i = 0; i < numOfChildren; ++i)
+            noise[i] = effolkronium::random_thread_local::get(dist);
+
+        const float noiseSum =
+            std::accumulate(begin(noise), end(noise), 1e-10f);
+
+        float total = 1e-10f;
+        std::size_t idx = 0;
+        root_->ForEach([&idx, &noise, &total, noiseSum, this](TreeNode* child) {
+            child->Policy =
+                (config_.DirichletNoiseEps) * child->Policy +
+                (1 - config_.DirichletNoiseEps) * noise[idx] / noiseSum;
+
+            total += child->Policy;
+            ++idx;
+        });
+
+        root_->ForEach([total](TreeNode* child) { child->Policy /= total; });
     }
 }
 
