@@ -5,6 +5,9 @@
 #include <fstream>
 #include <stdexcept>
 
+#define CONFIG(type, name) \
+	name = j.value<type>(#name, name)
+
 namespace BabaIsAgent::Common
 {
 Config::Config(std::string_view configFileName)
@@ -17,20 +20,24 @@ Config::Config(std::string_view configFileName)
 	file >> j;
 
 	// Network Options
-	WeightFileName = j.value<std::string>("WeightFileName", WeightFileName);
+	CONFIG(std::string, WeightFileName);
 
-	NumOfEvalWorker = j.value<int>("NumOfEvalWorker", NumOfEvalWorker);
-	BatchSize = j.value<int>("BatchSize", BatchSize);
-	Gpus = j.value<std::vector<int>>("Gpus", Gpus);
+	CONFIG(int, NumOfEvalWorker);
+	CONFIG(int, BatchSize);
+	CONFIG(std::vector<int>, Gpus);
 
 	// Search Options
-	NumOfSearchWorker = j.value<int>("NumOfSearchWorker", NumOfSearchWorker);
+	CONFIG(int, NumOfSearchWorker);
 
-	EnableDirichletNoise = j.value<bool>("EnableDirichletNoise", EnableDirichletNoise);
-	MaxSimulationCount = j.value<std::size_t>("MaxSimulationCount", MaxSimulationCount);
+	CONFIG(float, DirichletNoiseAlpha);
+	CONFIG(float, DirichletNoiseEps);
+	CONFIG(bool, EnableDirichletNoise);
+	CONFIG(std::size_t, MaxSimulationCount);
 
-	cPUCT = j.value<float>("cPUCT", cPUCT);
-	InitPenalty = j.value<float>("InitPenalty", InitPenalty);
-	VirtualLoss = j.value<float>("VirtualLoss", VirtualLoss);
+	CONFIG(float, cPUCT);
+	CONFIG(float, InitPenalty);
+	CONFIG(float, VirtualLoss);
 }
 }  // namespace BabaIsAgent::Common
+
+#undef CONFIG

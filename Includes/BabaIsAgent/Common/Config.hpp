@@ -25,6 +25,8 @@ struct Config final
     // Search Options
     int NumOfSearchWorker{ 1 };
 
+    float DirichletNoiseAlpha{ 0 };
+    float DirichletNoiseEps{ 0 };
     bool EnableDirichletNoise{ false };
     std::size_t MaxSimulationCount{ 10 };
 
