@@ -25,7 +25,7 @@ class Logger : public nvinfer1::ILogger
             case Severity::kERROR:
                 throw std::runtime_error(msg);
             default:
-                std::cerr << "[TensorRT] "s << msg << std::endl;
+                (void)severity;  // no log
         }
     }
 } TRT_LOGGER;
@@ -101,18 +101,19 @@ void TrtNetwork::Initialize(const std::string& weights)
 void TrtNetwork::Evaluate(const std::vector<Tensor>& inputs,
                           std::vector<Tensor>& policy, Tensor& value)
 {
-	const std::size_t batchSize = inputs.size();
-	assert(batchSize > 0);
+    const std::size_t batchSize = inputs.size();
+    assert(batchSize > 0);
 
-	const std::size_t TENSOR_SIZE = inputs[0].size();
+    const std::size_t TENSOR_SIZE = inputs[0].size();
 
-	Tensor inTensor(batchSize * TENSOR_SIZE);
-	for (std::size_t batch = 0; batch < batchSize; ++batch)
-	{
-		std::copy(begin(inputs[batch]), end(inputs[batch]), begin(inTensor) + TENSOR_SIZE * batch);
-	}
+    Tensor inTensor(batchSize * TENSOR_SIZE);
+    for (std::size_t batch = 0; batch < batchSize; ++batch)
+    {
+        std::copy(begin(inputs[batch]), end(inputs[batch]),
+                  begin(inTensor) + TENSOR_SIZE * batch);
+    }
 
-	if (int ret =
+    if (int ret =
             cudaMemcpy(buffers_[0], inTensor.data(),
                        inTensor.size() * sizeof(float), cudaMemcpyHostToDevice);
         ret != 0)
@@ -121,11 +122,11 @@ void TrtNetwork::Evaluate(const std::vector<Tensor>& inputs,
                                  std::to_string(ret) + ")"s);
     }
 
-	context_->executeV2(buffers_.data());
+    context_->executeV2(buffers_.data());
 
-	const std::size_t actionSize = Utils::ACTION_SPACE.size();
-	Tensor flatPolicy(batchSize * actionSize);
-	if (int ret = cudaMemcpy(flatPolicy.data(), buffers_[1],
+    const std::size_t actionSize = Utils::ACTION_SPACE.size();
+    Tensor flatPolicy(batchSize * actionSize);
+    if (int ret = cudaMemcpy(flatPolicy.data(), buffers_[1],
                              flatPolicy.size() * sizeof(float),
                              cudaMemcpyDeviceToHost);
         ret != 0)
@@ -134,17 +135,17 @@ void TrtNetwork::Evaluate(const std::vector<Tensor>& inputs,
                                  std::to_string(ret) + ")"s);
     }
 
-	for (std::size_t batch = 0; batch < batchSize; ++batch)
-	{
-		policy[batch].resize(actionSize);
+    for (std::size_t batch = 0; batch < batchSize; ++batch)
+    {
+        policy[batch].resize(actionSize);
 
-		for (std::size_t i = 0; i < actionSize; ++i)
-		{
-			policy[batch][i] = flatPolicy[batch * actionSize + i];
-		}
-	}
+        for (std::size_t i = 0; i < actionSize; ++i)
+        {
+            policy[batch][i] = flatPolicy[batch * actionSize + i];
+        }
+    }
 
-	if (int ret =
+    if (int ret =
             cudaMemcpy(value.data(), buffers_[2], value.size() * sizeof(float),
                        cudaMemcpyDeviceToHost);
         ret != 0)

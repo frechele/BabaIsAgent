@@ -94,6 +94,10 @@ void NetworkManager::evalThread(std::unique_ptr<Network> network)
 
             batchSize =
                 std::min<std::size_t>(config_.BatchSize, buffer_.size());
+
+            if (batchSize == 0)
+                continue;
+
             for (std::size_t batch = 0; batch < batchSize; ++batch)
             {
                 Task task = std::move(buffer_.front());

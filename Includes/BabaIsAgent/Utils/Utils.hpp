@@ -36,7 +36,7 @@ std::size_t Argmax(const ContainerT& container, CompareFunc&& func)
 }
 
 inline constexpr std::array<baba_is_auto::Direction, 5> ACTION_SPACE = {
-    baba_is_auto::Direction::UP,
+    baba_is_auto::Direction::NONE, baba_is_auto::Direction::UP,
     baba_is_auto::Direction::DOWN, baba_is_auto::Direction::LEFT,
     baba_is_auto::Direction::RIGHT
 };
