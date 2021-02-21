@@ -31,6 +31,8 @@ class SearchEngine final
     void DoSearch();
     void Play(baba_is_auto::Direction action);
 
+    void DumpStats() const;
+
     [[nodiscard]] baba_is_auto::Direction GetBestAction() const;
     [[nodiscard]] const TreeNode* GetRoot() const noexcept;
 

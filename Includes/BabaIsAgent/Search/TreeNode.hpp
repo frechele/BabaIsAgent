@@ -52,6 +52,7 @@ struct TreeNode final
     void Expand(const Network::Tensor& policy);
 
     TreeNode* GetMaxVisitedChild();
+    const TreeNode* GetMaxVisitedChild() const;
 
     template <typename Func>
     void ForEach(Func&& func);

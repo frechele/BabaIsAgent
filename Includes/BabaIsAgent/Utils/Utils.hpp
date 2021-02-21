@@ -3,9 +3,10 @@
 
 #include <baba-is-auto/baba-is-auto.hpp>
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <atomic>
+#include <string>
 
 namespace BabaIsAgent::Utils
 {
@@ -35,12 +36,29 @@ std::size_t Argmax(const ContainerT& container, CompareFunc&& func)
 }
 
 inline constexpr std::array<baba_is_auto::Direction, 5> ACTION_SPACE = {
-    baba_is_auto::Direction::NONE,
-    baba_is_auto::Direction::UP,
-    baba_is_auto::Direction::DOWN,
-    baba_is_auto::Direction::LEFT,
+    baba_is_auto::Direction::NONE, baba_is_auto::Direction::UP,
+    baba_is_auto::Direction::DOWN, baba_is_auto::Direction::LEFT,
     baba_is_auto::Direction::RIGHT
 };
+
+inline std::string ActionStr(baba_is_auto::Direction action)
+{
+    switch (action)
+    {
+        case baba_is_auto::Direction::NONE:
+            return "NONE";
+        case baba_is_auto::Direction::UP:
+            return "UP";
+        case baba_is_auto::Direction::DOWN:
+            return "DOWN";
+        case baba_is_auto::Direction::LEFT:
+            return "LEFT";
+        case baba_is_auto::Direction::RIGHT:
+            return "RIGHT";
+        default:
+            return "NONE";
+    }
+}
 }  // namespace BabaIsAgent::Utils
 
 #endif  // BABA_IS_AGENT_UTILS_HPP

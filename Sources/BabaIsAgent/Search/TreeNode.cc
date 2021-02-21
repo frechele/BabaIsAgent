@@ -5,8 +5,8 @@
 #include <array>
 #include <cassert>
 #include <cfloat>
-#include <cmath>
 #include <climits>
+#include <cmath>
 
 namespace BabaIsAgent::Search
 {
@@ -78,43 +78,48 @@ void TreeNode::Expand(const Network::Tensor& policy)
             return;
     }
 
-	const std::size_t numOfActions = Utils::ACTION_SPACE.size();
-	TreeNode* nowNode = nullptr;
-	for (std::size_t i = 0; i < numOfActions; ++i)
-	{
-		TreeNode* node = new TreeNode;
-		node->Action = Utils::ACTION_SPACE[i];
-		node->Policy = policy[i];
+    const std::size_t numOfActions = Utils::ACTION_SPACE.size();
+    TreeNode* nowNode = nullptr;
+    for (std::size_t i = 0; i < numOfActions; ++i)
+    {
+        TreeNode* node = new TreeNode;
+        node->Action = Utils::ACTION_SPACE[i];
+        node->Policy = policy[i];
 
-		if (nowNode == nullptr)
-			MostLeftChildNode = node;
-		else
-			nowNode->RightSiblingNode = node;
+        if (nowNode == nullptr)
+            MostLeftChildNode = node;
+        else
+            nowNode->RightSiblingNode = node;
 
-		++NumOfChildren;
-		node->ParentNode = this;
-		nowNode = node;
-	}
+        ++NumOfChildren;
+        node->ParentNode = this;
+        nowNode = node;
+    }
 
-	State = ExpandState::EXPANDED;
+    State = ExpandState::EXPANDED;
 }
 
 TreeNode* TreeNode::GetMaxVisitedChild()
 {
-	int maxVisits = -INT_MAX;
-	TreeNode* maxChild = nullptr;
+    return const_cast<TreeNode*>(std::as_const(*this).GetMaxVisitedChild());
+}
 
-	ForEach([&maxVisits, &maxChild](TreeNode* child) {
-		const int visits = child->Visits.load();
+const TreeNode* TreeNode::GetMaxVisitedChild() const
+{
+    int maxVisits = -INT_MAX;
+    const TreeNode* maxChild = nullptr;
 
-		if (maxVisits < visits)
-		{
-			maxVisits = visits;
-			maxChild = child;
-		}
-	});
+    ForEach([&maxVisits, &maxChild](const TreeNode* child) {
+        const int visits = child->Visits.load();
 
-	assert(maxChild != nullptr);
-	return maxChild;
+        if (maxVisits < visits)
+        {
+            maxVisits = visits;
+            maxChild = child;
+        }
+    });
+
+    assert(maxChild != nullptr);
+    return maxChild;
 }
 }  // namespace BabaIsAgent::Search

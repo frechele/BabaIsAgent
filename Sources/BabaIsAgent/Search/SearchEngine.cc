@@ -4,6 +4,8 @@
 
 #include <chrono>
 #include <effolkronium/random.hpp>
+#include <iomanip>
+#include <iostream>
 #include <random>
 
 namespace BabaIsAgent::Search
@@ -81,6 +83,43 @@ void SearchEngine::Play(baba_is_auto::Direction action)
     });
 
     updateRoot(newRoot);
+}
+
+void SearchEngine::DumpStats() const
+{
+    std::vector<const TreeNode*> children;
+    root_->ForEach(
+        [&children](TreeNode* child) { children.emplace_back(child); });
+
+    std::sort(begin(children), end(children),
+              [](const TreeNode* a, const TreeNode* b) {
+                  return a->Visits > b->Visits;
+              });
+
+    std::cerr << "root value: " << root_->Value / root_->Visits << '\n'
+              << "total simulations: " << numOfSimulations_ << '\n'
+              << "root visits: " << root_->Visits << '\n';
+
+    for (const TreeNode* child : children)
+    {
+        if (child->Visits == 0)
+            continue;
+
+        std::cerr << std::right << std::setw(5)
+                  << Utils::ActionStr(child->Action)
+                  << " : (N: " << child->Visits
+                  << ") (Q: " << (child->Value / child->Visits)
+                  << ") (P: " << child->Policy << ") -> ";
+
+        while (child->State == ExpandState::EXPANDED)
+        {
+            child = child->GetMaxVisitedChild();
+
+            std::cerr << Utils::ActionStr(child->Action) << ' ';
+        }
+
+        std::cerr << '\n';
+    }
 }
 
 baba_is_auto::Direction SearchEngine::GetBestAction() const
@@ -254,7 +293,8 @@ void SearchEngine::searchThread()
 
         float valueToUpdate = 0;
         const auto gameState = game.GetPlayState();
-        if (gameState == baba_is_auto::PlayState::PLAYING)
+
+        if (gameState != baba_is_auto::PlayState::WON && gameState != baba_is_auto::PlayState::LOST)
         {
             Network::Tensor policy;
             netMgr_.Evaluate(game, policy, valueToUpdate);
@@ -319,7 +359,7 @@ void SearchEngine::deleteThread()
         }
 
         TreeNode* nodeToDelete = deleteBuffer_.front();
-        deleteBuffer_.front();
+        deleteBuffer_.pop_front();
 
         deleteImpl(nodeToDelete);
         delete nodeToDelete;
