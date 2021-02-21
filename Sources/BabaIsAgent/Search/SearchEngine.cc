@@ -95,6 +95,42 @@ const TreeNode* SearchEngine::GetRoot() const noexcept
     return root_;
 }
 
+std::shared_ptr<Train::TrainingSet> SearchEngine::CreateTrainingSet() const
+{
+    const int width = mainGame_->GetMap().GetWidth();
+    const int height = mainGame_->GetMap().GetHeight();
+
+    return std::make_shared<Train::TrainingSet>(width, height);
+}
+
+Train::TrainingData SearchEngine::GetTrainingData() const
+{
+    Train::TrainingData data;
+
+    data.state = baba_is_auto::Preprocess::StateToTensor(*mainGame_);
+
+    data.pi.resize(Utils::ACTION_SPACE.size());
+    {
+        float totalVisits = 1e-10f;
+        root_->ForEach([&totalVisits](TreeNode* child) {
+            totalVisits += child->Visits.load();
+        });
+
+        root_->ForEach([&data, totalVisits](TreeNode* child) {
+            const int actionId = static_cast<int>(child->Action);
+
+            data.pi[actionId] = child->Visits.load() / totalVisits;
+        });
+    }
+
+    return data;
+}
+
+baba_is_auto::PlayState SearchEngine::GetResult() const
+{
+    return mainGame_->GetPlayState();
+}
+
 void SearchEngine::loadConfig()
 {
     config_ = Common::Config(configFileName_);

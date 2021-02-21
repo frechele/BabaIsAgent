@@ -5,6 +5,7 @@
 #include <BabaIsAgent/Network/NetworkManager.hpp>
 #include <BabaIsAgent/Search/SearchController.hpp>
 #include <BabaIsAgent/Search/TreeNode.hpp>
+#include <BabaIsAgent/Train/TrainingData.hpp>
 
 #include <atomic>
 #include <condition_variable>
@@ -32,6 +33,11 @@ class SearchEngine final
 
     [[nodiscard]] baba_is_auto::Direction GetBestAction() const;
     [[nodiscard]] const TreeNode* GetRoot() const noexcept;
+
+    // For Training
+    std::shared_ptr<Train::TrainingSet> CreateTrainingSet() const;
+    Train::TrainingData GetTrainingData() const;
+    baba_is_auto::PlayState GetResult() const;
 
  private:
     void loadConfig();
