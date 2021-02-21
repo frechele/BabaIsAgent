@@ -14,6 +14,8 @@ NetworkManager::~NetworkManager()
 {
     isRunning_ = false;
 
+    cv_.notify_all();
+
     for (auto& worker : workers_)
     {
         if (worker.joinable())
@@ -27,6 +29,8 @@ void NetworkManager::Init()
     [[maybe_unused]] const std::size_t numOfGpus = config_.Gpus.size();
 
     barrier_.Init(numOfWorkers);
+
+    isRunning_ = true;
 
     for (int threadId = 0; threadId < numOfWorkers; ++threadId)
     {
@@ -77,7 +81,7 @@ void NetworkManager::evalThread(std::unique_ptr<Network> network)
     {
         {
             std::unique_lock lock(mutex_);
-            cv_.wait(lock, [this] { return size_.load() > 0; });
+            cv_.wait(lock, [this] { return !isRunning_ || size_.load() > 0; });
         }
 
         std::vector<Tensor> inputs;

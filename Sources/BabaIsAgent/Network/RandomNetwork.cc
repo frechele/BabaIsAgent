@@ -1,5 +1,7 @@
 #include <BabaIsAgent/Network/RandomNetwork.hpp>
 
+#include <BabaIsAgent/Utils/Utils.hpp>
+
 #include <effolkronium/random.hpp>
 
 namespace BabaIsAgent::Network
@@ -16,8 +18,12 @@ void RandomNetwork::Evaluate([[maybe_unused]] const std::vector<Tensor>& inputs,
 
     const std::size_t batchSize = policy.size();
 
+    const std::size_t actionSize = Utils::ACTION_SPACE.size();
+
     for (std::size_t batch = 0; batch < batchSize; ++batch)
     {
+        policy[batch].resize(actionSize);
+
         float sum = 1e-10f;
         for (auto& p : policy[batch])
         {
@@ -28,7 +34,7 @@ void RandomNetwork::Evaluate([[maybe_unused]] const std::vector<Tensor>& inputs,
         for (auto& p : policy[batch])
             p /= sum;
 
-        value[batch] = Random::get<float>(-1, 1);
+        value[batch] = Random::get<float>(0, 1);
     }
 }
 }  // namespace BabaIsAgent::Network
