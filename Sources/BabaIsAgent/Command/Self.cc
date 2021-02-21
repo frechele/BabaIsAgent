@@ -1,12 +1,13 @@
 #include <BabaIsAgent/Search/SearchEngine.hpp>
+#include <BabaIsAgent/Utils/Utils.hpp>
 
 #include <atomic>
 #include <csignal>
 #include <ctime>
+#include <filesystem>
 #include <iostream>
 #include <sstream>
 #include <thread>
-#include <filesystem>
 
 namespace fs = std::filesystem;
 
@@ -14,7 +15,9 @@ namespace fs = std::filesystem;
 
 namespace
 {
+std::atomic<std::size_t> numOfSuccGames{ 0 };
 std::atomic<std::size_t> numOfDoneGames{ 0 };
+std::atomic<double> avgSteps{ 0 };
 std::atomic<bool> checked{ false };
 bool isRunning = false;
 void sigHandler(int signal)
@@ -37,7 +40,8 @@ std::string makeDateStr()
     return ss.str();
 }
 
-void SelfThread(int threadId, const std::string& configFileName, const std::string& mapFileName)
+void SelfThread(int threadId, const std::string& configFileName,
+                const std::string& mapFileName, int stepLimit)
 {
     using namespace BabaIsAgent;
 
@@ -48,8 +52,9 @@ void SelfThread(int threadId, const std::string& configFileName, const std::stri
 
         auto dataset = engine.CreateTrainingSet();
 
+        int step = 0;
         auto result = baba_is_auto::PlayState::INVALID;
-        for (int step = 0; step < 400; ++step)
+        for (step = 0; step < stepLimit; ++step)
         {
             if (result == baba_is_auto::PlayState::LOST ||
                 result == baba_is_auto::PlayState::WON)
@@ -58,14 +63,23 @@ void SelfThread(int threadId, const std::string& configFileName, const std::stri
             engine.DoSearch();
             dataset->Add(engine.GetTrainingData());
             engine.Play(engine.GetBestAction());
+
+            result = engine.GetResult();
         }
         dataset->SetResult(result);
 
-        const std::string dataDir = "traindata/" + makeDateStr() + "_" + std::to_string(threadId) + ".dat";
+        const std::string dataDir = "traindata/" + makeDateStr() + "_" +
+                                    std::to_string(threadId) + ".dat";
         fs::create_directories(fs::path(dataDir).parent_path().string());
         dataset->Save(dataDir);
 
+        if (dataset->GetResult())
+            ++numOfSuccGames;
+
         ++numOfDoneGames;
+        BabaIsAgent::Utils::AtomicAdd(
+            avgSteps, (1. / numOfDoneGames) * (step - avgSteps));
+
         checked = false;
     }
 }
@@ -79,6 +93,7 @@ int RunSelf(int argc, char** argv)
     std::string configFileName;
     std::string mapFileName;
     std::size_t numOfGameThread;
+    int stepLimit;
 
     auto cli =
         lyra::cli() | lyra::help(showHelp) |
@@ -88,6 +103,8 @@ int RunSelf(int argc, char** argv)
         lyra::opt(mapFileName, "map")["--map"]("Map file path").required() |
         lyra::opt(numOfGameThread,
                   "threads")["--thread"]("The number of self game threads")
+            .required() |
+        lyra::opt(stepLimit, "limit")["--limit"]("The maximum steps per game")
             .required();
 
     auto result = cli.parse({ argc, argv });
@@ -119,16 +136,22 @@ int RunSelf(int argc, char** argv)
          ++threadId)
     {
         gameWorkers[threadId] =
-            std::thread(SelfThread, threadId, std::ref(configFileName), std::ref(mapFileName));
+            std::thread(SelfThread, threadId, std::ref(configFileName),
+                        std::ref(mapFileName), stepLimit);
     }
 
     while (isRunning)
     {
         const std::size_t numGames = numOfDoneGames.load();
+        const std::size_t numSuccGames = numOfSuccGames.load();
 
         if (numGames % 10 == 9 && !checked)
         {
-            std::cout << numGames << " games done." << std::endl;
+            std::cout << numGames << " games done.\n"
+                      << "success games: " << numSuccGames << " ("
+                      << static_cast<float>(numSuccGames) / numGames << ")\n"
+                      << "avg steps: " << avgSteps << '\n'
+                      << std::endl;
             checked = true;
         }
     }
