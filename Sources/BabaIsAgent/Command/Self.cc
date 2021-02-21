@@ -15,6 +15,7 @@ namespace fs = std::filesystem;
 namespace
 {
 std::atomic<std::size_t> numOfDoneGames{ 0 };
+std::atomic<bool> checked{ false };
 bool isRunning = false;
 void sigHandler(int signal)
 {
@@ -36,14 +37,14 @@ std::string makeDateStr()
     return ss.str();
 }
 
-void SelfThread(int threadId, const std::string& configFileName)
+void SelfThread(int threadId, const std::string& configFileName, const std::string& mapFileName)
 {
     using namespace BabaIsAgent;
 
     while (isRunning)
     {
         Search::SearchEngine engine(configFileName.data());
-        engine.Init("game.txt");
+        engine.Init(mapFileName.data());
 
         auto dataset = engine.CreateTrainingSet();
 
@@ -62,9 +63,11 @@ void SelfThread(int threadId, const std::string& configFileName)
         dataset->SetResult(result);
 
         const std::string dataDir = "traindata/" + makeDateStr() + "_" + std::to_string(threadId) + ".dat";
+        fs::create_directories(fs::path(dataDir).parent_path().string());
         dataset->Save(dataDir);
 
         ++numOfDoneGames;
+        checked = false;
     }
 }
 }  // namespace
@@ -117,16 +120,17 @@ int RunSelf(int argc, char** argv)
          ++threadId)
     {
         gameWorkers[threadId] =
-            std::thread(SelfThread, threadId, std::ref(configFileName));
+            std::thread(SelfThread, threadId, std::ref(configFileName), std::ref(mapFileName));
     }
 
     while (isRunning)
     {
         const std::size_t numGames = numOfDoneGames.load();
 
-        if (numGames % 10 == 9)
+        if (numGames % 10 == 9 && !checked)
         {
             std::cout << numGames << " games done." << std::endl;
+            checked = true;
         }
     }
 
