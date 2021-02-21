@@ -14,16 +14,15 @@ TreeNode::TreeNode(TreeNode&& other) noexcept
     : State(other.State.load()),
       Action(other.Action),
       Policy(other.Policy),
+      Visits(other.Visits.load()),
       Value(other.Value.load()),
       VirtualLoss(other.VirtualLoss.load()),
       NumOfChildren(other.NumOfChildren),
       ParentNode(other.ParentNode),
-      MostLeftChildNode(other.MostLeftChildNode),
-      RightSiblingNode(other.RightSiblingNode)
+      MostLeftChildNode(other.MostLeftChildNode)
 {
     other.State = ExpandState::UNEXPANDED;
     other.MostLeftChildNode = nullptr;
-    other.RightSiblingNode = nullptr;
     other.NumOfChildren = 0;
 }
 

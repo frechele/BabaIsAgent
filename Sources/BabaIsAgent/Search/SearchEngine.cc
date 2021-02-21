@@ -41,9 +41,6 @@ SearchEngine::~SearchEngine() noexcept
 
     deleteNode(root_);
 
-    // maybe root is deleted during this time.
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
     isDeleteThreadRunning_ = false;
     if (deleteWorker_.joinable())
         deleteWorker_.join();
@@ -346,12 +343,15 @@ void SearchEngine::deleteThread()
         impl(node);
     };
 
-    while (isDeleteThreadRunning_)
+    while (true)
     {
         std::unique_lock lock(deleteMutex_);
 
         if (deleteBuffer_.empty())
         {
+            if (!isDeleteThreadRunning_)
+                return;
+
             lock.unlock();
 
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
