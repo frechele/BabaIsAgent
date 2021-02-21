@@ -49,7 +49,7 @@ void SelfThread(int threadId, const std::string& configFileName, const std::stri
         auto dataset = engine.CreateTrainingSet();
 
         auto result = baba_is_auto::PlayState::INVALID;
-        while (true)
+        for (int step = 0; step < 400; ++step)
         {
             if (result == baba_is_auto::PlayState::LOST ||
                 result == baba_is_auto::PlayState::WON)
@@ -57,7 +57,6 @@ void SelfThread(int threadId, const std::string& configFileName, const std::stri
 
             engine.DoSearch();
             dataset->Add(engine.GetTrainingData());
-
             engine.Play(engine.GetBestAction());
         }
         dataset->SetResult(result);
